@@ -1,0 +1,96 @@
+import pandas as pd
+import numpy as np
+
+df = pd.read_csv("Churn_Modelling.csv")
+df = df.drop(['RowNumber', 'Surname', 'CustomerId'], axis= 1) 
+df.isnull().sum()
+
+
+states = pd.get_dummies(df['Geography'],drop_first = True)
+gender = pd.get_dummies(df['Gender'],drop_first = True)
+df = pd.concat([df,gender,states], axis = 1)
+
+X = df[['CreditScore','Age','Tenure','Balance','NumOfProducts','HasCrCard','IsActiveMember','EstimatedSalary','Male','Germany','Spain']]
+y = df['Exited']
+
+from sklearn.model_selection import train_test_split
+X_train,X_test,y_train,y_test = train_test_split(X,y,test_size = 0.30)
+
+from sklearn.preprocessing import StandardScaler
+sc = StandardScaler()
+X_train  = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+
+from tensorflow.keras.models import Sequential 
+from tensorflow.keras.layers import Dense
+classifier = Sequential()
+classifier.add(Dense(activation = "relu", input_dim = 11, units = 6, kernel_initializer = "uniform")) 
+classifier.add(Dense(activation = "relu", units = 6, kernel_initializer = "uniform")) 
+classifier.add(Dense(activation = "sigmoid", units = 1, kernel_initializer = "uniform"))
+classifier.compile(optimizer="adam", loss = 'binary_crossentropy', metrics = ['accuracy']) 
+classifier.summary()
+classifier.fit(X_train, y_train, batch_size=10, epochs=50) 
+y_pred = classifier.predict(X_test)
+y_pred = (y_pred > 0.5)
+
+
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+accuracy  =(tp+tn)/(tp+tn+fp+fn)
+precision =(tp)/(tp+fp)
+recall  =(tp)/(tp+fn)
+f1_score =2*(( precision * recall)/( precision + recall))
+print( 
+    'Accuracy:\t',accuracy*100,
+    '\nPrecision:\t',precision*100,
+    '\nRecall: \t',recall*100,
+    '\nF1-Score:\t',f1_score*100)
+print(classification_report(y_test,y_pred))
+
+
+
+# 5
+import pandas as pd
+import numpy as np
+df = pd.read_csv('emails.csv')
+df.dropna(inplace = True)
+df.drop(['Email No.'],axis=1,inplace=True)
+X = df.drop(['Prediction'],axis = 1)
+y = df['Prediction']
+from sklearn.preprocessing import scale
+from sklearn.model_selection import train_test_split
+X = scale(X)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 42)
+from sklearn.neighbors import KNeighborsClassifier
+knn = KNeighborsClassifier(n_neighbors=7)
+knn.fit(X_train, y_train)
+y_pred = knn.predict(X_test)
+from sklearn.metrics import confusion_matrix
+tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+accuracy  =(tp+tn)/(tp+tn+fp+fn)
+precision =(tp)/(tp+fp)
+recall  =(tp)/(tp+fn)
+f1_score =2*(( precision * recall)/( precision + recall))
+print( 
+    'Accuracy:\t',accuracy*100,
+    '\nPrecision:\t',precision*100,
+    '\nRecall: \t',recall*100,
+    '\nF1-Score:\t',f1_score*100)
+
+
+from sklearn.svm import SVC
+model = SVC(C = 1)
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+accuracy  =(tp+tn)/(tp+tn+fp+fn)
+precision =(tp)/(tp+fp)
+recall  =(tp)/(tp+fn)
+f1_score =2*(( precision * recall)/( precision + recall))
+
+print( 
+    'Accuracy:\t',accuracy*100,
+    '\nPrecision:\t',precision*100,
+    '\nRecall: \t',recall*100,
+    '\nF1-Score:\t',f1_score*100)
